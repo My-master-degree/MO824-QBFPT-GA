@@ -18,6 +18,10 @@ import solutions.Solution;
  */
 public abstract class AbstractGA<G extends Number, F> {
 
+	public final static int DEFAULT_CROSSOVER = 1;
+	public final static int UNIFORM_CROSSOVER = 2;
+	public int CROSSOVER_TYPE;
+	
 	@SuppressWarnings("serial")
 	public class Chromosome extends ArrayList<G> {
 	}
@@ -138,12 +142,13 @@ public abstract class AbstractGA<G extends Number, F> {
 	 * @param mutationRate
 	 *            The mutation rate.
 	 */
-	public AbstractGA(Evaluator<F> objFunction, Integer generations, Integer popSize, Double mutationRate) {
+	public AbstractGA(Evaluator<F> objFunction, Integer generations, Integer popSize, Double mutationRate, int crossoverType) {
 		this.ObjFunction = objFunction;
 		this.generations = generations;
 		this.popSize = popSize;
 		this.chromosomeSize = this.ObjFunction.getDomainSize();
 		this.mutationRate = mutationRate;
+		this.CROSSOVER_TYPE = crossoverType;			
 	}
 
 	/**
@@ -305,30 +310,34 @@ public abstract class AbstractGA<G extends Number, F> {
 
 		Population offsprings = new Population();
 
-		for (int i = 0; i < popSize; i = i + 2) {
-
-			Chromosome parent1 = parents.get(i);
-			Chromosome parent2 = parents.get(i + 1);
-
-			int crosspoint1 = rng.nextInt(chromosomeSize + 1);
-			int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
-
-			Chromosome offspring1 = new Chromosome();
-			Chromosome offspring2 = new Chromosome();
-
-			for (int j = 0; j < chromosomeSize; j++) {
-				if (j >= crosspoint1 && j < crosspoint2) {
-					offspring1.add(parent2.get(j));
-					offspring2.add(parent1.get(j));
-				} else {
-					offspring1.add(parent1.get(j));
-					offspring2.add(parent2.get(j));
+		if (this.CROSSOVER_TYPE == AbstractGA.DEFAULT_CROSSOVER) {			
+			for (int i = 0; i < popSize; i = i + 2) {
+	
+				Chromosome parent1 = parents.get(i);
+				Chromosome parent2 = parents.get(i + 1);
+	
+				int crosspoint1 = rng.nextInt(chromosomeSize + 1);
+				int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
+	
+				Chromosome offspring1 = new Chromosome();
+				Chromosome offspring2 = new Chromosome();
+	
+				for (int j = 0; j < chromosomeSize; j++) {
+					if (j >= crosspoint1 && j < crosspoint2) {
+						offspring1.add(parent2.get(j));
+						offspring2.add(parent1.get(j));
+					} else {
+						offspring1.add(parent1.get(j));
+						offspring2.add(parent2.get(j));
+					}
 				}
+	
+				offsprings.add(offspring1);
+				offsprings.add(offspring2);
+	
 			}
-
-			offsprings.add(offspring1);
-			offsprings.add(offspring2);
-
+		}else if (this.CROSSOVER_TYPE == AbstractGA.UNIFORM_CROSSOVER) {
+			
 		}
 
 		return offsprings;

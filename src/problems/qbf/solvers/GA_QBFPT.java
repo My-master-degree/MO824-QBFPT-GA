@@ -52,8 +52,8 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 	 * @throws IOException
 	 *             Necessary for I/O operations.
 	 */
-	public GA_QBFPT(Integer generations, Integer popSize, Double mutationRate, String filename) throws IOException {
-		super(new QBF(filename), generations, popSize, mutationRate);
+	public GA_QBFPT(Integer generations, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
+		super(new QBF(filename), generations, popSize, mutationRate, crossoverType);
 		generateTripleElements();
         generateTriples();
 	}
@@ -152,7 +152,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
         
         // Set all incumbent elements as unavailable and selected
         if (chromosome != null) {
-        	for (int i = 0; i < chromosomeSize; i++) {
+        	for (int i = 0; i < chromosome.size(); i++) {
         		Integer var = chromosome.get(i);
                 this.tripleElements[i].setSelected(var == 1);
                 this.tripleElements[i].setAvailable(var == 0);
@@ -270,7 +270,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 	public static void main(String[] args) throws IOException {
 
 		long startTime = System.currentTimeMillis();
-		GA_QBFPT ga = new GA_QBFPT(1000, 100, 1.0 / 100.0, "instances/qbf100");
+		GA_QBFPT ga = new GA_QBFPT(1000, 100, 1.0 / 100.0, "instances/qbf100", AbstractGA.DEFAULT_CROSSOVER);
 		Solution<Integer> bestSol = ga.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime = System.currentTimeMillis();

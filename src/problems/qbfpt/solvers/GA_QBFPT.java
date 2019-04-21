@@ -300,7 +300,7 @@ public class GA_QBFPT extends GA_QBF {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.UNIFORM_CROSSOVER);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();

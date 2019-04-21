@@ -43,6 +43,21 @@ public class GA_QBFPT extends GA_QBF {
     }
 
     @Override
+    protected Chromosome<Integer> generateRandomChromosome() {
+        Chromosome<Integer> chromosome = createEmpytChromossome();
+        
+        for (int i = 0; i < chromosomeSize; i++) {
+            if (updateCL(chromosome).contains(i)) {
+                chromosome.add(rng.nextInt(2));
+            } else {
+                chromosome.add(0);
+            }
+        }
+
+        return chromosome;
+    }
+
+    @Override
     protected Population defaultCrossover(Population parents) {
         Population offsprings = new Population();
 

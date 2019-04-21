@@ -2,7 +2,7 @@ package triple;
 
 /**
  * An object of this class represents a prohibited triple for MAXQBFPT problem.
- * 
+ *
  * @author Cintia Muranaka
  * @author Felipe de Carvalho Pereira [felipe.pereira@students.ic.unicamp.br]
  * @author Matheus Diógenes Andrade
@@ -19,7 +19,6 @@ public class Triple {
     }
 
     // Getters
-    
     public TripleElement[] getElements() {
         return elements;
     }

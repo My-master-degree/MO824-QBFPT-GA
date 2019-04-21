@@ -12,15 +12,14 @@ import triple.Triple;
 import triple.TripleElement;
 
 /**
- * Metaheuristic GA (Genetic Algorithm) for
- * obtaining an optimal solution to a QBF (Quadractive Binary Function --
- * {@link #QuadracticBinaryFunction}). 
- * 
+ * Metaheuristic GA (Genetic Algorithm) for obtaining an optimal solution to a
+ * QBF (Quadractive Binary Function -- {@link #QuadracticBinaryFunction}).
+ *
  * @author ccavellucci, fusberti
  */
 public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
-	/**
+    /**
      * List of element objects used in prohibited triples. These objects
      * represents the variables of the model.
      */
@@ -29,36 +28,31 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     /**
      * List of prohibited triples.
      */
-    private Triple[] triples; 
-    
-    /**
-	 * the Candidate List of elements to enter the solution.
-	 */
-	protected ArrayList<Integer> CL;
-	
-	/**
-	 * Constructor for the GA_QBF class. The QBF objective function is passed as
-	 * argument for the superclass constructor.
-	 * 
-	 * @param generations
-	 *            Maximum number of generations.
-	 * @param popSize
-	 *            Size of the population.
-	 * @param mutationRate
-	 *            The mutation rate.
-	 * @param filename
-	 *            Name of the file for which the objective function parameters
-	 *            should be read.
-	 * @throws IOException
-	 *             Necessary for I/O operations.
-	 */
-	public GA_QBFPT(Integer generations, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
-		super(new QBF(filename), generations, popSize, mutationRate, crossoverType);
-		generateTripleElements();
-        generateTriples();
-	}
+    private Triple[] triples;
 
-	/**
+    /**
+     * the Candidate List of elements to enter the solution.
+     */
+    protected ArrayList<Integer> CL;
+
+    /**
+     * Constructor for the GA_QBF class. The QBF objective function is passed as
+     * argument for the superclass constructor.
+     *
+     * @param generations Maximum number of generations.
+     * @param popSize Size of the population.
+     * @param mutationRate The mutation rate.
+     * @param filename Name of the file for which the objective function
+     * parameters should be read.
+     * @throws IOException Necessary for I/O operations.
+     */
+    public GA_QBFPT(Integer generations, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
+        super(new QBF(filename), generations, popSize, mutationRate, crossoverType);
+        generateTripleElements();
+        generateTriples();
+    }
+
+    /**
      * Linear congruent function l used to generate pseudo-random numbers.
      */
     public int l(int pi1, int pi2, int u, int n) {
@@ -114,20 +108,20 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
             te2 = tripleElements[g(u - 1, n) - 1];
             te3 = tripleElements[h(u - 1, n) - 1];
             newTriple = new Triple(te1, te2, te3);
-            
+
             //Sorting new triple
             Arrays.sort(newTriple.getElements(), Comparator.comparing(TripleElement::getIndex));
 
             //newTriple.printTriple();
-            this.triples[u-1] = newTriple;
+            this.triples[u - 1] = newTriple;
         }
     }
-    
+
     /**
      * That method generates a list of objects (Triple Elements) that represents
      * each binary variable that could be inserted into a prohibited triple
      */
-	private void generateTripleElements() {
+    private void generateTripleElements() {
         int n = ObjFunction.getDomainSize();
         this.tripleElements = new TripleElement[n];
 
@@ -135,30 +129,29 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
             tripleElements[i] = new TripleElement(i);
         }
     }
-	
-	/**
-     * Update the list of candidates, keeping only those who
-     * can be inserted in the incumbent solution without violating
-     * any triple
+
+    /**
+     * Update the list of candidates, keeping only those who can be inserted in
+     * the incumbent solution without violating any triple
      */
     public void updateCL(Chromosome chromosome) {
         ArrayList<Integer> _CL = new ArrayList<Integer>();
-        
+
         // Set all elements as available
         for (TripleElement tripElem : this.tripleElements) {
-        	tripElem.setSelected(false);
-        	tripElem.setAvailable(true);
+            tripElem.setSelected(false);
+            tripElem.setAvailable(true);
         }
-        
+
         // Set all incumbent elements as unavailable and selected
         if (chromosome != null) {
-        	for (int i = 0; i < chromosome.size(); i++) {
-        		Integer var = chromosome.get(i);
+            for (int i = 0; i < chromosome.size(); i++) {
+                Integer var = chromosome.get(i);
                 this.tripleElements[i].setSelected(var == 1);
                 this.tripleElements[i].setAvailable(var == 0);
             }
         }
-        
+
         // Set to unavailable those elements that can violate at least one triple
         for (Triple trip : this.triples) {
             TripleElement te0, te1, te2;
@@ -184,99 +177,99 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         this.CL = _CL;
     }
-	
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * This createEmptySol instantiates an empty solution and it attributes a
-	 * zero cost, since it is known that a QBF solution with all variables set
-	 * to zero has also zero cost.
-	 */
-	@Override
-	public Solution<Integer> createEmptySol() {
-		Solution<Integer> sol = new Solution<Integer>();
-		sol.cost = 0.0;
-		return sol;
-	}
 
-	/*
+    /**
+     * {@inheritDoc}
+     *
+     * This createEmptySol instantiates an empty solution and it attributes a
+     * zero cost, since it is known that a QBF solution with all variables set
+     * to zero has also zero cost.
+     */
+    @Override
+    public Solution<Integer> createEmptySol() {
+        Solution<Integer> sol = new Solution<Integer>();
+        sol.cost = 0.0;
+        return sol;
+    }
+
+    /*
 	 * (non-Javadoc)
 	 * 
 	 * @see metaheuristics.ga.AbstractGA#decode(metaheuristics.ga.AbstractGA.
 	 * Chromosome)
-	 */
-	@Override
-	protected Solution<Integer> decode(Chromosome chromosome) {
+     */
+    @Override
+    protected Solution<Integer> decode(Chromosome chromosome) {
 
-		Solution<Integer> solution = createEmptySol();
-		for (int locus = 0; locus < chromosome.size(); locus++) {
-			if (chromosome.get(locus) == 1) {
-				solution.add(new Integer(locus));
-			}
-		}
+        Solution<Integer> solution = createEmptySol();
+        for (int locus = 0; locus < chromosome.size(); locus++) {
+            if (chromosome.get(locus) == 1) {
+                solution.add(new Integer(locus));
+            }
+        }
 
-		ObjFunction.evaluate(solution);
-		return solution;
-	}
+        ObjFunction.evaluate(solution);
+        return solution;
+    }
 
-	/*
+    /*
 	 * (non-Javadoc)
 	 * 
 	 * @see metaheuristics.ga.AbstractGA#generateRandomChromosome()
-	 */
-	@Override
-	protected Chromosome generateRandomChromosome() {
+     */
+    @Override
+    protected Chromosome generateRandomChromosome() {
 
-		Chromosome chromosome = new Chromosome();
-		for (int i = 0; i < chromosomeSize; i++) {			
-			chromosome.add(rng.nextInt(2));
-			updateCL(chromosome);
-		}
+        Chromosome chromosome = new Chromosome();
+        for (int i = 0; i < chromosomeSize; i++) {
+            chromosome.add(rng.nextInt(2));
+            updateCL(chromosome);
+        }
 
-		return chromosome;
-	}
+        return chromosome;
+    }
 
-	/*
+    /*
 	 * (non-Javadoc)
 	 * 
 	 * @see metaheuristics.ga.AbstractGA#fitness(metaheuristics.ga.AbstractGA.
 	 * Chromosome)
-	 */
-	@Override
-	protected Double fitness(Chromosome chromosome) {
+     */
+    @Override
+    protected Double fitness(Chromosome chromosome) {
 
-		return decode(chromosome).cost;
+        return decode(chromosome).cost;
 
-	}
+    }
 
-	/*
+    /*
 	 * (non-Javadoc)
 	 * 
 	 * @see
 	 * metaheuristics.ga.AbstractGA#mutateGene(metaheuristics.ga.AbstractGA.
 	 * Chromosome, java.lang.Integer)
-	 */
-	@Override
-	protected void mutateGene(Chromosome chromosome, Integer locus) {
+     */
+    @Override
+    protected void mutateGene(Chromosome chromosome, Integer locus) {
 //		check broken triples
-		chromosome.set(locus, 1 - chromosome.get(locus));
-		
-	}
+        chromosome.set(locus, 1 - chromosome.get(locus));
 
-	/**
-	 * A main method used for testing the GA metaheuristic.
-	 * 
-	 */
-	public static void main(String[] args) throws IOException {
+    }
 
-		long startTime = System.currentTimeMillis();
-		GA_QBFPT ga = new GA_QBFPT(1000, 100, 1.0 / 100.0, "instances/qbf100", AbstractGA.DEFAULT_CROSSOVER);
-		Solution<Integer> bestSol = ga.solve();
-		System.out.println("maxVal = " + bestSol);
-		long endTime = System.currentTimeMillis();
-		long totalTime = endTime - startTime;
-		System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
+    /**
+     * A main method used for testing the GA metaheuristic.
+     *
+     */
+    public static void main(String[] args) throws IOException {
 
-	}
+        long startTime = System.currentTimeMillis();
+        GA_QBFPT ga = new GA_QBFPT(1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER);
+        Solution<Integer> bestSol = ga.solve();
+        System.out.println("maxVal = " + bestSol);
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
+
+    }
 
 }

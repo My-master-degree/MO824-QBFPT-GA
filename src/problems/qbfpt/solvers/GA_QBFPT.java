@@ -56,13 +56,13 @@ public class GA_QBFPT extends GA_QBF {
 
             Chromosome<Integer> offspring1 = createEmpytChromossome();
             Chromosome<Integer> offspring2 = createEmpytChromossome();
-            
+
             ArrayList<Integer> CL1 = makeCL();
             ArrayList<Integer> CL2 = makeCL();
 
             for (int j = 0; j < chromosomeSize; j++) {
                 int cand1, cand2;
-                
+
                 if (j >= crosspoint1 && j < crosspoint2) {
                     cand1 = parent2.get(j);
                     cand2 = parent1.get(j);
@@ -70,19 +70,70 @@ public class GA_QBFPT extends GA_QBF {
                     cand1 = parent1.get(j);
                     cand2 = parent2.get(j);
                 }
-                
+
                 if (!CL1.contains(j)) {
                     cand1 = 0;
                 }
                 if (!CL2.contains(j)) {
                     cand2 = 0;
                 }
-                
+
                 offspring1.add(cand1);
                 offspring2.add(cand2);
-                
-                CL1 = updateCL(CL1, offspring1);
-                CL2 = updateCL(CL2, offspring2);
+
+                CL1 = updateCL(offspring1);
+                CL2 = updateCL(offspring2);
+            }
+
+            offspring1.calcFitness(ObjFunction);
+            offspring2.calcFitness(ObjFunction);
+
+            offsprings.add(offspring1);
+            offsprings.add(offspring2);
+
+        }
+
+        return offsprings;
+    }
+
+    @Override
+    protected Population uniformCrossover(Population parents) {
+        Population offsprings = new Population();
+
+        for (int i = 0; i < popSize; i = i + 2) {
+
+            Chromosome<Integer> parent1 = parents.get(i);
+            Chromosome<Integer> parent2 = parents.get(i + 1);
+
+            Chromosome<Integer> offspring1 = createEmpytChromossome();
+            Chromosome<Integer> offspring2 = createEmpytChromossome();
+
+            ArrayList<Integer> CL1 = makeCL();
+            ArrayList<Integer> CL2 = makeCL();
+
+            for (int j = 0; j < chromosomeSize; j++) {
+                int cand1, cand2;
+
+                if (rng.nextDouble() >= 0.5D) {
+                    cand1 = parent2.get(j);
+                    cand2 = parent1.get(j);
+                } else {
+                    cand1 = parent1.get(j);
+                    cand2 = parent2.get(j);
+                }
+
+                if (!CL1.contains(j)) {
+                    cand1 = 0;
+                }
+                if (!CL2.contains(j)) {
+                    cand2 = 0;
+                }
+
+                offspring1.add(cand1);
+                offspring2.add(cand2);
+
+                CL1 = updateCL(offspring1);
+                CL2 = updateCL(offspring2);
             }
 
             offspring1.calcFitness(ObjFunction);
@@ -98,12 +149,12 @@ public class GA_QBFPT extends GA_QBF {
 
     @Override
     protected void mutateGene(Chromosome<Integer> chromosome, Integer locus) {
-        return;
+        if (chromosome.get(locus) == 1) {
+            chromosome.set(locus, 0);
+        } else if (updateCL(chromosome).contains(locus)) {
+            chromosome.set(locus, 1);
+        }
     }
-    
-    
-    
-    
 
     /**
      * Linear congruent function l used to generate pseudo-random numbers.
@@ -207,7 +258,7 @@ public class GA_QBFPT extends GA_QBF {
      * The CL updater for MAXQBFPT problem
      *
      */
-    public ArrayList<Integer> updateCL(ArrayList<Integer> CL, Chromosome<Integer> cro) {
+    public ArrayList<Integer> updateCL(Chromosome<Integer> cro) {
         ArrayList<Integer> _CL = new ArrayList<Integer>();
         Solution<Integer> solAtual = decode(cro);
 
@@ -249,7 +300,7 @@ public class GA_QBFPT extends GA_QBF {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.UNIFORM_CROSSOVER);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();

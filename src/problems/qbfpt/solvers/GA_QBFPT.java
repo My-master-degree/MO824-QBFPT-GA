@@ -35,17 +35,75 @@ public class GA_QBFPT extends GA_QBF {
      */
     private Triple[] triples;
 
-    /**
-     * the Candidate List of elements to enter the solution.
-     */
-    protected ArrayList<Integer> CL;
-
     public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
         super(tempoExecucao, geracoesConvengencia, popSize, mutationRate, filename, crossoverType);
 
         generateTripleElements();
         generateTriples();
     }
+
+    @Override
+    protected Population defaultCrossover(Population parents) {
+        Population offsprings = new Population();
+
+        for (int i = 0; i < popSize; i = i + 2) {
+
+            Chromosome<Integer> parent1 = parents.get(i);
+            Chromosome<Integer> parent2 = parents.get(i + 1);
+
+            int crosspoint1 = rng.nextInt(chromosomeSize + 1);
+            int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
+
+            Chromosome<Integer> offspring1 = createEmpytChromossome();
+            Chromosome<Integer> offspring2 = createEmpytChromossome();
+            
+            ArrayList<Integer> CL1 = makeCL();
+            ArrayList<Integer> CL2 = makeCL();
+
+            for (int j = 0; j < chromosomeSize; j++) {
+                int cand1, cand2;
+                
+                if (j >= crosspoint1 && j < crosspoint2) {
+                    cand1 = parent2.get(j);
+                    cand2 = parent1.get(j);
+                } else {
+                    cand1 = parent1.get(j);
+                    cand2 = parent2.get(j);
+                }
+                
+                if (!CL1.contains(j)) {
+                    cand1 = 0;
+                }
+                if (!CL2.contains(j)) {
+                    cand2 = 0;
+                }
+                
+                offspring1.add(cand1);
+                offspring2.add(cand2);
+                
+                CL1 = updateCL(CL1, offspring1);
+                CL2 = updateCL(CL2, offspring2);
+            }
+
+            offspring1.calcFitness(ObjFunction);
+            offspring2.calcFitness(ObjFunction);
+
+            offsprings.add(offspring1);
+            offsprings.add(offspring2);
+
+        }
+
+        return offsprings;
+    }
+
+    @Override
+    protected void mutateGene(Chromosome<Integer> chromosome, Integer locus) {
+        return;
+    }
+    
+    
+    
+    
 
     /**
      * Linear congruent function l used to generate pseudo-random numbers.
@@ -149,7 +207,7 @@ public class GA_QBFPT extends GA_QBF {
      * The CL updater for MAXQBFPT problem
      *
      */
-    public void updateCL(Chromosome<Integer> cro) {
+    public ArrayList<Integer> updateCL(ArrayList<Integer> CL, Chromosome<Integer> cro) {
         ArrayList<Integer> _CL = new ArrayList<Integer>();
         Solution<Integer> solAtual = decode(cro);
 
@@ -181,7 +239,7 @@ public class GA_QBFPT extends GA_QBF {
             }
         }
 
-        this.CL = _CL;
+        return _CL;
     }
 
     /**

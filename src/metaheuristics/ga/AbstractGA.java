@@ -342,7 +342,33 @@ public abstract class AbstractGA<G extends Number, F> {
     }
 
     protected Population uniformCrossover(Population parents) {
-        return new Population();
+        Population offsprings = new Population();
+
+        for (int i = 0; i < popSize; i = i + 2) {
+            Chromosome<F> parent1 = parents.get(i);
+            Chromosome<F> parent2 = parents.get(i + 1);
+
+            Chromosome<F> offspring1 = createEmpytChromossome();
+            Chromosome<F> offspring2 = createEmpytChromossome();
+
+            for (int j = 0; j < chromosomeSize; j++) {
+                if (rng.nextDouble() < 0.5D) {
+                    offspring1.add(parent2.get(j));
+                    offspring2.add(parent1.get(j));
+                } else {
+                    offspring1.add(parent1.get(j));
+                    offspring2.add(parent2.get(j));
+                }
+            }
+
+            offspring1.calcFitness(ObjFunction);
+            offspring2.calcFitness(ObjFunction);
+
+            offsprings.add(offspring1);
+            offsprings.add(offspring2);
+        }
+
+        return offsprings;
     }
 
     /**

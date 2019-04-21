@@ -10,7 +10,9 @@ import problems.Evaluator;
 
 /**
  *
- * @author
+ * @author Cristina Bazzano
+ * @author Jônatas Trabuco Belotti [jonatas.t.belotti@hotmail.com]
+ * @author Matheus Diógenes Andrade
  */
 @SuppressWarnings("serial")
 public abstract class Chromosome<G> extends ArrayList<G> {

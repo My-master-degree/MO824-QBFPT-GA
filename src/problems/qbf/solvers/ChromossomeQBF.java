@@ -11,7 +11,9 @@ import solutions.Solution;
 
 /**
  *
- * @author
+ * @author Cristina Bazzano
+ * @author Jônatas Trabuco Belotti [jonatas.t.belotti@hotmail.com]
+ * @author Matheus Diógenes Andrade
  */
 public class ChromossomeQBF extends Chromosome<Integer> {
 

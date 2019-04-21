@@ -3,7 +3,6 @@ package problems.qbf.solvers;
 import java.io.IOException;
 import metaheuristics.ga.AbstractGA;
 import metaheuristics.ga.Chromosome;
-import problems.Evaluator;
 import problems.qbf.QBF;
 import solutions.Solution;
 
@@ -27,8 +26,8 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
      * parameters should be read.
      * @throws IOException Necessary for I/O operations.
      */
-    public GA_QBF(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename) throws IOException {
-        super(new QBF(filename), tempoExecucao, geracoesConvengencia, popSize, mutationRate);
+    public GA_QBF(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
+        super(new QBF(filename), tempoExecucao, geracoesConvengencia, popSize, mutationRate, crossoverType);
     }
 
     /**
@@ -83,7 +82,7 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
     public static void main(String[] args) throws IOException {
         
         long startTime = System.currentTimeMillis();
-        GA_QBF ga = new GA_QBF(30, 1000, 100, 1.0 / 100.0, "instances/qbf020");
+        GA_QBF ga = new GA_QBF(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();

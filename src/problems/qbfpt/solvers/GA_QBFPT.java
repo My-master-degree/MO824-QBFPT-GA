@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import metaheuristics.ga.AbstractGA;
 import metaheuristics.ga.Chromosome;
 import problems.qbf.solvers.GA_QBF;
 import problems.qbfpt.Triple;
@@ -31,14 +32,14 @@ public class GA_QBFPT extends GA_QBF {
      * List of prohibited triples.
      */
     private Triple[] triples;
-    
+
     /**
      * the Candidate List of elements to enter the solution.
      */
     protected ArrayList<Integer> CL;
 
-    public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename) throws IOException {
-        super(tempoExecucao, geracoesConvengencia, popSize, mutationRate, filename);
+    public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
+        super(tempoExecucao, geracoesConvengencia, popSize, mutationRate, filename, crossoverType);
 
         generateTripleElements();
         generateTriples();
@@ -123,7 +124,7 @@ public class GA_QBFPT extends GA_QBF {
             this.triples[u - 1] = novaTripla;
         }
     }
-    
+
     /**
      * A GRASP CL generator for MAXQBFPT problem
      *
@@ -179,6 +180,22 @@ public class GA_QBFPT extends GA_QBF {
         }
 
         this.CL = _CL;
+    }
+
+    /**
+     * A main method used for testing the GA metaheuristic.
+     *
+     */
+    public static void main(String[] args) throws IOException {
+
+        long startTime = System.currentTimeMillis();
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER);
+        Solution<Integer> bestSol = ga.solve();
+        System.out.println("maxVal = " + bestSol);
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
+
     }
 
 }

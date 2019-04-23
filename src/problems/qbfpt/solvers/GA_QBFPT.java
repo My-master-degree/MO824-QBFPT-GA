@@ -44,6 +44,7 @@ public class GA_QBFPT extends GA_QBF {
 
     @Override
     protected Chromosome<Integer> generateRandomChromosome() {
+    	makeCL();
         Chromosome<Integer> chromosome = createEmpytChromossome();
         
         for (int i = 0; i < chromosomeSize; i++) {
@@ -53,6 +54,8 @@ public class GA_QBFPT extends GA_QBF {
                 chromosome.add(0);
             }
         }
+        
+        System.out.println("chromosome" + chromosome);
 
         return chromosome;
     }
@@ -66,6 +69,29 @@ public class GA_QBFPT extends GA_QBF {
             Chromosome<Integer> parent1 = parents.get(i);
             Chromosome<Integer> parent2 = parents.get(i + 1);
 
+//            System.out.println("parent1 "+parent1);
+//            System.out.println("parent2 "+parent2);
+            
+            // encontrar indice a partir do inicio em que parent1 fica diferente de parent2
+//            int crossbegin, crossend;
+//            for (crossbegin = 0; crossbegin < chromosomeSize; crossbegin++) {
+//            	if (parent1.get(crossbegin) != parent2.get(crossbegin))
+//            		break;
+//            }
+//            if (crossbegin == chromosomeSize) // parents are equal
+//            {
+//            	System.out.println("Parents are equall!!");
+//            	continue;
+//            }
+//            for (crossend = chromosomeSize-1; crossend > crossbegin; crossend--) {
+//            	if (parent1.get(crossend) != parent2.get(crossend))
+//            		break;
+//            }
+//            if (crossend == crossbegin)
+//            	crossend++;
+//            
+//            int crosspoint1 = crossbegin + rng.nextInt(crossend + 1 - crossbegin);
+//            int crosspoint2 = crosspoint1 + rng.nextInt((crossend + 1) - crosspoint1);
             int crosspoint1 = rng.nextInt(chromosomeSize + 1);
             int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
 
@@ -278,10 +304,19 @@ public class GA_QBFPT extends GA_QBF {
         Solution<Integer> solAtual = decode(cro);
 
         if (solAtual != null) {
-            for (Integer e : solAtual) {
-                this.tripleElements[e].setSelected(true);
-                this.tripleElements[e].setAvailable(false);
-            }
+//            for (Integer e : solAtual) {
+//                this.tripleElements[e].setSelected(true);
+//                this.tripleElements[e].setAvailable(false);
+//            }
+        	for (int i = 0; i < chromosomeSize; i ++) {
+        		if (solAtual.contains(i)) {
+        			this.tripleElements[i].setSelected(true);
+        			this.tripleElements[i].setAvailable(false);
+        		} else {
+        			this.tripleElements[i].setSelected(false);
+        			this.tripleElements[i].setAvailable(true);
+        		}
+        	}
         }
 
         for (Triple trip : this.triples) {
@@ -315,7 +350,7 @@ public class GA_QBFPT extends GA_QBF {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf060", AbstractGA.DEFAULT_CROSSOVER);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();

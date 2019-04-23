@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import metaheuristics.ga.AbstractGA;
 import metaheuristics.ga.Chromosome;
+import metaheuristics.ga.AbstractGA.Population;
 import problems.qbf.solvers.GA_QBF;
 import problems.qbfpt.Triple;
 import problems.qbfpt.TripleElement;
@@ -55,9 +56,52 @@ public class GA_QBFPT extends GA_QBF {
             }
         }
         
-        System.out.println("chromosome" + chromosome);
+        //System.out.println("chromosome" + chromosome);
 
         return chromosome;
+    }
+    
+    protected Integer diffChromosome(Chromosome<Integer> c1, Chromosome<Integer> c2) {
+    	int diff = 0;
+    	
+    	for (int i = 0; i < chromosomeSize; i++) {
+    		if (c1.get(i) != c2.get(i))
+    			diff++;
+    	}
+    	
+    	return diff;    	
+    }
+    
+    @Override
+    protected Population selectParents(Population population) {
+
+        Population parents = new Population();
+        Chromosome<Integer> parent1, parent2;
+        
+        while (parents.size() < popSize) {
+        	// find a parent that is at least 10% different from the last added one
+        	do {
+	            int index1 = rng.nextInt(popSize);
+	            parent1 = population.get(index1);
+        	} while (parents.size() > 0 &&
+        			diffChromosome(parents.get(parents.size()-1), parent1) < 0.1*chromosomeSize);
+            
+        	// try to find a different parent from at least one element
+        	do {
+	        	int index2 = rng.nextInt(popSize);
+	            parent2 = population.get(index2);
+            } while (parents.size() > 0 && 
+        			diffChromosome(parents.get(parents.size()-1), parent2) == 0);
+            
+            if (parent1.getFitnessVal() > parent2.getFitnessVal()) {
+                parents.add(parent1);
+            } else {
+                parents.add(parent2);
+            }
+        }
+
+        return parents;
+
     }
 
     @Override
@@ -73,27 +117,34 @@ public class GA_QBFPT extends GA_QBF {
 //            System.out.println("parent2 "+parent2);
             
             // encontrar indice a partir do inicio em que parent1 fica diferente de parent2
-//            int crossbegin, crossend;
-//            for (crossbegin = 0; crossbegin < chromosomeSize; crossbegin++) {
-//            	if (parent1.get(crossbegin) != parent2.get(crossbegin))
-//            		break;
-//            }
-//            if (crossbegin == chromosomeSize) // parents are equal
-//            {
-//            	System.out.println("Parents are equall!!");
-//            	continue;
-//            }
-//            for (crossend = chromosomeSize-1; crossend > crossbegin; crossend--) {
-//            	if (parent1.get(crossend) != parent2.get(crossend))
-//            		break;
-//            }
-//            if (crossend == crossbegin)
-//            	crossend++;
-//            
-//            int crosspoint1 = crossbegin + rng.nextInt(crossend + 1 - crossbegin);
-//            int crosspoint2 = crosspoint1 + rng.nextInt((crossend + 1) - crosspoint1);
-            int crosspoint1 = rng.nextInt(chromosomeSize + 1);
-            int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
+            int crossbegin, crossend;
+            for (crossbegin = 0; crossbegin < chromosomeSize; crossbegin++) {
+            	if (parent1.get(crossbegin) != parent2.get(crossbegin))
+            		break;
+            }
+            if (crossbegin == chromosomeSize) // parents are equal
+            {
+            	// mutate parents at random and add them
+            	mutateGene(parent1, rng.nextInt(chromosomeSize));
+            	
+            	offsprings.add(parent1);
+                offsprings.add(parent2);
+            	//System.out.println("Parents are equall!!");
+            	//System.out.println("parent1 "+parent1);
+            	//System.out.println("parent2 "+parent2);
+            	continue;
+            }
+            // encontrar indice a partir do final em que parents ficam diferentes
+            for (crossend = chromosomeSize-1; crossend > crossbegin; crossend--) {
+            	if (parent1.get(crossend) != parent2.get(crossend))
+            		break;
+            }
+            
+            int crosspoint1 = crossbegin + rng.nextInt(crossend + 1 - crossbegin);
+            int crosspoint2 = crosspoint1 + rng.nextInt((crossend + 1) - crosspoint1);
+            
+//            int crosspoint1 = rng.nextInt(chromosomeSize + 1);
+//            int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
 
             Chromosome<Integer> offspring1 = createEmpytChromossome();
             Chromosome<Integer> offspring2 = createEmpytChromossome();
@@ -350,7 +401,7 @@ public class GA_QBFPT extends GA_QBF {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf040", AbstractGA.DEFAULT_CROSSOVER);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf060", AbstractGA.DEFAULT_CROSSOVER);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();

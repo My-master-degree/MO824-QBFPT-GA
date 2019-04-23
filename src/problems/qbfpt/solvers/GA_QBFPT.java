@@ -44,7 +44,7 @@ public class GA_QBFPT extends GA_QBF {
 
     @Override
     protected Chromosome<Integer> generateRandomChromosome() {
-    	makeCL();
+    	//makeCL();
         Chromosome<Integer> chromosome = createEmpytChromossome();
         
         for (int i = 0; i < chromosomeSize; i++) {
@@ -350,7 +350,7 @@ public class GA_QBFPT extends GA_QBF {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf060", AbstractGA.DEFAULT_CROSSOVER);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf040", AbstractGA.DEFAULT_CROSSOVER);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();

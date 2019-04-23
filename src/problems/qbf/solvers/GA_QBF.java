@@ -26,8 +26,8 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
      * parameters should be read.
      * @throws IOException Necessary for I/O operations.
      */
-    public GA_QBF(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
-        super(new QBF(filename), tempoExecucao, geracoesConvengencia, popSize, mutationRate, crossoverType);
+    public GA_QBF(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType, int mutationType) throws IOException {
+        super(new QBF(filename), tempoExecucao, geracoesConvengencia, popSize, mutationRate, crossoverType, mutationType);
     }
 
     /**
@@ -108,7 +108,7 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
     public static void main(String[] args) throws IOException {
         
         long startTime = System.currentTimeMillis();
-        GA_QBF ga = new GA_QBF(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.UNIFORM_CROSSOVER);
+        GA_QBF ga = new GA_QBF(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.UNIFORM_CROSSOVER, AbstractGA.DEFAULT_MUTATION);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();
@@ -116,5 +116,17 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
         System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
         
     }
+
+	@Override
+	protected void endGenerationAction() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Boolean mutationCriteria() {
+		// TODO Auto-generated method stub
+		return null;
+	}
     
 }

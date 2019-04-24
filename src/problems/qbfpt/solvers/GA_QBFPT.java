@@ -379,9 +379,10 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
             int qtt = tripleElements[i].getQttUsed();
             desvioPadrao += (qtt * qtt) - (2 * qtt * esperanca) + (esperanca * esperanca);
         }
-        desvioPadrao = Math.sqrt(desvioPadrao / tripleElements.length);
-
-        return rng.nextDouble() < mutationRate;
+        desvioPadrao = Math.sqrt(desvioPadrao / tripleElements.length)/100;
+//        System.out.println("Desvio padrão "+desvioPadrao);
+        Boolean mutate = rng.nextDouble() >= desvioPadrao;
+        return mutate;
     }
 
     /**
@@ -537,7 +538,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER, AbstractGA.DEFAULT_MUTATION);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER, AbstractGA.DYNAMIC_MUTATION);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();

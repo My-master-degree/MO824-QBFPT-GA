@@ -93,7 +93,7 @@ public abstract class AbstractGA<G extends Number, F> {
     public abstract Solution<F> createEmptySol();
 
     public abstract Boolean mutationCriteria();
-    
+
     /**
      * A mapping from the genotype (domain) to the fenotype (image). In other
      * words, it takes a chromosome as input and generates a corresponding
@@ -145,7 +145,7 @@ public abstract class AbstractGA<G extends Number, F> {
     }
 
     protected abstract void endGenerationAction();
-    
+
     /**
      * The GA mainframe. It starts by initializing a population of chromosomes.
      * It then enters a generational loop, in which each generation goes the
@@ -396,17 +396,17 @@ public abstract class AbstractGA<G extends Number, F> {
 
             for (int locus = 0; locus < chromosomeSize; locus++) {
                 if (this.MUTATION_TYPE == AbstractGA.DEFAULT_MUTATION) {
-                	if (rng.nextDouble() < mutationRate) {
-	                    mutateGene(c, locus);
-	                    teveMutacao = true;
-                	}
-                }else if (this.MUTATION_TYPE == AbstractGA.DYNAMIC_MUTATION) {
-                	if (this.mutationCriteria()) {
-                		mutateGene(c, locus);
-	                    teveMutacao = true;
-                	}
-                }                                    
-            
+                    if (rng.nextDouble() < mutationRate) {
+                        mutateGene(c, locus);
+                        teveMutacao = true;
+                    }
+                } else if (this.MUTATION_TYPE == AbstractGA.DYNAMIC_MUTATION) {
+                    if (this.mutationCriteria()) {
+                        mutateGene(c, locus);
+                        teveMutacao = true;
+                    }
+                }
+
             }
 
             if (teveMutacao) {

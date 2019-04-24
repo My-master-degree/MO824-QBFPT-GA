@@ -43,7 +43,7 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
         sol.cost = 0.0;
         return sol;
     }
-    
+
 
     /*
 	 * (non-Javadoc)
@@ -52,12 +52,12 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
      */
     @Override
     protected Chromosome<Integer> generateRandomChromosome() {
-        
+
         Chromosome<Integer> chromosome = createEmpytChromossome();
         for (int i = 0; i < chromosomeSize; i++) {
             chromosome.add(rng.nextInt(2));
         }
-        
+
         return chromosome;
     }
 
@@ -70,9 +70,9 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
      */
     @Override
     protected void mutateGene(Chromosome<Integer> chromosome, Integer locus) {
-        
+
         chromosome.set(locus, 1 - chromosome.get(locus));
-        
+
     }
 
     /*
@@ -84,8 +84,7 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
     @Override
     protected Solution<Integer> decode(Chromosome<Integer> chromosome) {
         Solution<Integer> solution = createEmptySol();
-        
-        
+
         for (int locus = 0; locus < chromosome.size(); locus++) {
             if (chromosome.get(locus) == 1) {
                 solution.add(new Integer(locus));
@@ -100,13 +99,13 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
     protected Chromosome<Integer> createEmpytChromossome() {
         return new ChromossomeQBF();
     }
-    
+
     /**
      * A main method used for testing the GA metaheuristic.
      *
      */
     public static void main(String[] args) throws IOException {
-        
+
         long startTime = System.currentTimeMillis();
         GA_QBF ga = new GA_QBF(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.UNIFORM_CROSSOVER, AbstractGA.DEFAULT_MUTATION);
         Solution<Integer> bestSol = ga.solve();
@@ -114,19 +113,19 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
-        
+
     }
 
-	@Override
-	protected void endGenerationAction() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    protected void endGenerationAction() {
+        // TODO Auto-generated method stub
 
-	@Override
-	public Boolean mutationCriteria() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-    
+    }
+
+    @Override
+    public Boolean mutationCriteria() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

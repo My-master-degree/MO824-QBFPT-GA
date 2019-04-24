@@ -1,9 +1,10 @@
 package problems.qbfpt;
 
 /**
- * An object of this class represents a element that could be inserted in a prohibited list
- * for MAXQBFPT problem. An element is simply a variable of the instance.
- * 
+ * An object of this class represents a element that could be inserted in a
+ * prohibited list for MAXQBFPT problem. An element is simply a variable of the
+ * instance.
+ *
  * @author Cristina Bazzano
  * @author Jônatas Trabuco Belotti [jonatas.t.belotti@hotmail.com]
  * @author Matheus Diógenes Andrade
@@ -22,29 +23,28 @@ public class TripleElement {
         this.qttUsed = 0;
     }
 
-	public Boolean getSelected() {
-		return selected;
-	}
+    public Boolean getSelected() {
+        return selected;
+    }
 
-	public void setSelected(Boolean selected) {
-		this.selected = selected;
-	}
+    public void setSelected(Boolean selected) {
+        this.selected = selected;
+    }
 
-	public Boolean getAvailable() {
-		return available;
-	}
+    public Boolean getAvailable() {
+        return available;
+    }
 
-	public void setAvailable(Boolean available) {
-		this.available = available;
-	}
+    public void setAvailable(Boolean available) {
+        this.available = available;
+    }
 
-	public Integer getIndex() {
-		return index;
-	}
+    public Integer getIndex() {
+        return index;
+    }
 
-	public Integer getQttUsed() {
-		return qttUsed;
-	}
-	
+    public Integer getQttUsed() {
+        return qttUsed;
+    }
 
 }

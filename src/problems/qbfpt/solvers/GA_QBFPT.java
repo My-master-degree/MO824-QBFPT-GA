@@ -123,29 +123,30 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         Population parents = new Population();
         Chromosome<Integer> parent1, parent2;
-        int tryAdd;
+//        int tryAdd;
         while (parents.size() < popSize) {
             // find a parent that is at least 10% different from the last added one
-        	tryAdd = 10;
-            do {
-            	tryAdd--;
+//        	tryAdd = 10;
+//            do {
+//            	tryAdd--;
                 int index1 = rng.nextInt(popSize);
                 parent1 = population.get(index1);
-            } while (parents.size() > 0 && tryAdd > 0
-                    && diffChromosome(parents.get(parents.size() - 1), parent1) < 0.1 * chromosomeSize);
+//            } while (parents.size() > 0 && tryAdd > 0
+//                    && diffChromosome(parents.get(parents.size() - 1), parent1) < 0.1 * chromosomeSize);
 
             // try to find a different parent from at least one element
-            tryAdd = 10;
-            do {
-            	tryAdd--;
+//            tryAdd = 10;
+//            do {
+//            	tryAdd--;
                 int index2 = rng.nextInt(popSize);
                 parent2 = population.get(index2);
-            } while (parents.size() > 0 && tryAdd > 0
-                    && diffChromosome(parents.get(parents.size() - 1), parent2) == 0);
+//            } while (parents.size() > 0 && tryAdd > 0
+//                    && diffChromosome(parents.get(parents.size() - 1), parent2) == 0);
 
-            if (parent1.getFitnessVal() > parent2.getFitnessVal()) {
+            if (parent1.getFitnessVal() > parent2.getFitnessVal() &&
+            		offspringMinDist(parents,parent1) > 0) {
                 parents.add(parent1);
-            } else {
+            } else if (offspringMinDist(parents, parent2) > 0) {
                 parents.add(parent2);
             }
         }
@@ -596,7 +597,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf100", AbstractGA.DEFAULT_CROSSOVER, AbstractGA.DEFAULT_MUTATION);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf080", AbstractGA.DEFAULT_CROSSOVER, AbstractGA.DEFAULT_MUTATION);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();
@@ -647,7 +648,63 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
         	this.tripleElements[locus].qttUsed++;
         	this.incrementEsperanca();
             chromosome.set(locus, 1);
-        }    
+        } else {
+        	// encontra a tripla que proibe o locus e remove o pior
+        	Solution<Integer> sol = decode(chromosome);
+        	// add locus
+        	this.tripleElements[locus].qttUsed++;
+        	this.incrementEsperanca();
+            chromosome.set(locus, 1);
+        	
+        	for (Triple trip : this.triples) {
+                TripleElement te0, te1, te2;
+                te0 = trip.getElements().get(0);
+                te1 = trip.getElements().get(1);
+                te2 = trip.getElements().get(2);
+
+                if (te0.getIndex() == locus) {
+                	// essa tripla esta bloqueando o locus, remove o pior elemento
+                	if (sol.contains(te1.getIndex()) && sol.contains(te2.getIndex())) {
+                		if (ObjFunction.evaluateExchangeCost(locus, te1.getIndex(), sol) >
+                				ObjFunction.evaluateExchangeCost(locus, te2.getIndex(), sol)) {
+                			this.tripleElements[te1.getIndex()].qttUsed--;
+                            this.decrementEsperanca();
+                            chromosome.set(te1.getIndex(), 0);
+                		} else {
+                			this.tripleElements[te2.getIndex()].qttUsed--;
+                            this.decrementEsperanca();
+                            chromosome.set(te2.getIndex(), 0);
+                		}
+                	}
+                } else if (te1.getIndex() == locus) {
+                	if (sol.contains(te0.getIndex()) && sol.contains(te2.getIndex())) {
+                		if (ObjFunction.evaluateExchangeCost(locus, te0.getIndex(), sol) >
+                				ObjFunction.evaluateExchangeCost(locus, te2.getIndex(), sol)) {
+                			this.tripleElements[te0.getIndex()].qttUsed--;
+                            this.decrementEsperanca();
+                            chromosome.set(te0.getIndex(), 0);
+                		} else {
+                			this.tripleElements[te2.getIndex()].qttUsed--;
+                            this.decrementEsperanca();
+                            chromosome.set(te2.getIndex(), 0);
+                		}
+                	}
+                } else if (te2.getIndex() == locus) {
+                	if (sol.contains(te0.getIndex()) && sol.contains(te1.getIndex())) {
+                		if (ObjFunction.evaluateExchangeCost(locus, te0.getIndex(), sol) >
+                				ObjFunction.evaluateExchangeCost(locus, te1.getIndex(), sol)) {
+                			this.tripleElements[te0.getIndex()].qttUsed--;
+                            this.decrementEsperanca();
+                            chromosome.set(te0.getIndex(), 0);
+                		} else {
+                			this.tripleElements[te1.getIndex()].qttUsed--;
+                            this.decrementEsperanca();
+                            chromosome.set(te1.getIndex(), 0);
+                		}
+                	}
+                }
+        	}
+        }
 		
 	}
 

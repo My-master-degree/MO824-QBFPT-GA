@@ -103,6 +103,22 @@ public class GA_QBFPT extends GA_QBF {
         return parents;
 
     }
+    
+    // return the min dist of the chromossome to any individual of the given population
+    // if a clone is found return 0
+    protected Integer offspringMinDist(Population offsprings, Chromosome<Integer> chrom) {
+    	int mindist = chromosomeSize, dist;
+    	
+    	for (Chromosome<Integer> individuo : offsprings) {
+    		dist = diffChromosome(individuo, chrom);
+    		if (dist == 0)
+    			return dist; // return when the first clone is found
+    		if (dist < mindist)
+    			mindist = dist;
+    	}
+    	
+    	return mindist;
+    }
 
     @Override
     protected Population defaultCrossover(Population parents) {
@@ -180,9 +196,20 @@ public class GA_QBFPT extends GA_QBF {
             offspring1.calcFitness(ObjFunction);
             offspring2.calcFitness(ObjFunction);
 
-            offsprings.add(offspring1);
-            offsprings.add(offspring2);
-
+            if (offspringMinDist(offsprings, offspring1) == 0) {
+            	// existe um individuo igual a offspring1, mutate offspring and add
+            	mutateGene(offspring1, rng.nextInt(chromosomeSize));
+            	offsprings.add(offspring1);
+            } else {
+            	offsprings.add(offspring1);
+            }
+            if (offspringMinDist(offsprings, offspring2) == 0) {
+            	// existe um individuo igual a offspring2, mutate offspring and add
+            	mutateGene(offspring2, rng.nextInt(chromosomeSize));
+            	offsprings.add(offspring2);
+            } else {
+            	offsprings.add(offspring2);
+            }            
         }
 
         return offsprings;

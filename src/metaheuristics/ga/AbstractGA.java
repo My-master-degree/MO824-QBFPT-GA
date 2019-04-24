@@ -18,7 +18,10 @@ public abstract class AbstractGA<G extends Number, F> {
 
     public final static int DEFAULT_CROSSOVER = 1;
     public final static int UNIFORM_CROSSOVER = 2;
+    public final static int DYNAMIC_MUTATION = 1;
+    public final static int DEFAULT_MUTATION = 2;
     public int CROSSOVER_TYPE;
+    public int MUTATION_TYPE;
 
     @SuppressWarnings("serial")
     public class Population extends ArrayList<Chromosome<F>> {
@@ -89,6 +92,8 @@ public abstract class AbstractGA<G extends Number, F> {
      */
     public abstract Solution<F> createEmptySol();
 
+    public abstract Boolean mutationCriteria();
+    
     /**
      * A mapping from the genotype (domain) to the fenotype (image). In other
      * words, it takes a chromosome as input and generates a corresponding
@@ -128,7 +133,7 @@ public abstract class AbstractGA<G extends Number, F> {
      * @param popSize Population size.
      * @param mutationRate The mutation rate.
      */
-    public AbstractGA(Evaluator<F> objFunction, Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, int crossoverType) {
+    public AbstractGA(Evaluator<F> objFunction, Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, int crossoverType, int mutationType) {
         this.ObjFunction = objFunction;
         this.tempoExecucao = tempoExecucao;
         this.geracoesConvengencia = geracoesConvengencia;
@@ -136,8 +141,11 @@ public abstract class AbstractGA<G extends Number, F> {
         this.chromosomeSize = this.ObjFunction.getDomainSize();
         this.mutationRate = mutationRate;
         this.CROSSOVER_TYPE = crossoverType;
+        this.MUTATION_TYPE = mutationType;
     }
 
+    protected abstract void endGenerationAction();
+    
     /**
      * The GA mainframe. It starts by initializing a population of chromosomes.
      * It then enters a generational loop, in which each generation goes the
@@ -186,6 +194,7 @@ public abstract class AbstractGA<G extends Number, F> {
                 geracoesSemMelhora = 0;
             }
 
+            this.endGenerationAction();
         }
 
         return bestSol;
@@ -386,10 +395,18 @@ public abstract class AbstractGA<G extends Number, F> {
             boolean teveMutacao = false;
 
             for (int locus = 0; locus < chromosomeSize; locus++) {
-                if (rng.nextDouble() < mutationRate) {
-                    mutateGene(c, locus);
-                    teveMutacao = true;
-                }
+                if (this.MUTATION_TYPE == AbstractGA.DEFAULT_MUTATION) {
+                	if (rng.nextDouble() < mutationRate) {
+	                    mutateGene(c, locus);
+	                    teveMutacao = true;
+                	}
+                }else if (this.MUTATION_TYPE == AbstractGA.DYNAMIC_MUTATION) {
+                	if (this.mutationCriteria()) {
+                		mutateGene(c, locus);
+	                    teveMutacao = true;
+                	}
+                }                                    
+            
             }
 
             if (teveMutacao) {

@@ -12,6 +12,8 @@ import java.util.Comparator;
 import metaheuristics.ga.AbstractGA;
 import metaheuristics.ga.Chromosome;
 import metaheuristics.ga.AbstractGA.Population;
+import problems.qbf.QBF;
+import problems.qbf.solvers.ChromossomeQBF;
 import problems.qbf.solvers.GA_QBF;
 import problems.qbfpt.Triple;
 import problems.qbfpt.TripleElement;
@@ -23,7 +25,7 @@ import solutions.Solution;
  * @author Jônatas Trabuco Belotti [jonatas.t.belotti@hotmail.com]
  * @author Matheus Diógenes Andrade
  */
-public class GA_QBFPT extends GA_QBF {
+public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
     /**
      * List of element objects used in prohibited triples. These objects
@@ -35,64 +37,92 @@ public class GA_QBFPT extends GA_QBF {
      * List of prohibited triples.
      */
     private Triple[] triples;
+    
+    private Double esperanca;
 
-    public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType) throws IOException {
-        super(tempoExecucao, geracoesConvengencia, popSize, mutationRate, filename, crossoverType);
-
+    public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType, int mutationType) throws IOException {
+//        super(tempoExecucao, geracoesConvengencia, popSize, mutationRate, filename, crossoverType);
+        super(new QBF(filename), tempoExecucao, geracoesConvengencia, popSize, mutationRate, crossoverType, mutationType);
+        esperanca = 0d;
         generateTripleElements();
         generateTriples();
     }
 
+    protected void resetTripleElementsQttUsed() {
+    	for (int i = 0; i < tripleElements.length; i++) {
+    		tripleElements[i].qttUsed = 0;
+		}
+    	this.esperanca = 0d;
+    }
+    
+    protected void incrementEsperanca() {
+    	esperanca += 1/this.tripleElements.length; 
+    }
+    
+    protected void decrementEsperanca() {
+    	esperanca -= 1/this.tripleElements.length; 
+    }
+    
     @Override
     protected Chromosome<Integer> generateRandomChromosome() {
-    	//makeCL();
         Chromosome<Integer> chromosome = createEmpytChromossome();
-        
+        ArrayList<Integer> listIndices = new ArrayList<Integer>();
+
         for (int i = 0; i < chromosomeSize; i++) {
+            chromosome.add(0);
+            listIndices.add(i);
+        }
+
+        Collections.shuffle(listIndices);
+
+        for (int i : listIndices) {
             if (updateCL(chromosome).contains(i)) {
-                chromosome.add(rng.nextInt(2));
-            } else {
-                chromosome.add(0);
+            	Integer used = rng.nextInt(2);
+            	if (used == 1) {
+            		this.tripleElements[i].qttUsed++;    
+            		this.incrementEsperanca();
+            	}
+                chromosome.set(i, used);
             }
         }
-        
-        //System.out.println("chromosome" + chromosome);
 
+        //System.out.println("chromosome" + chromosome);
         return chromosome;
     }
-    
+
     protected Integer diffChromosome(Chromosome<Integer> c1, Chromosome<Integer> c2) {
-    	int diff = 0;
-    	
-    	for (int i = 0; i < chromosomeSize; i++) {
-    		if (c1.get(i) != c2.get(i))
-    			diff++;
-    	}
-    	
-    	return diff;    	
+        int diff = 0;
+
+        for (int i = 0; i < chromosomeSize; i++) {
+            if (c1.get(i) != c2.get(i)) {
+                diff++;
+            }
+        }
+
+        return diff;
     }
-    
+
     @Override
     protected Population selectParents(Population population) {
 
         Population parents = new Population();
         Chromosome<Integer> parent1, parent2;
-        
+
         while (parents.size() < popSize) {
-        	// find a parent that is at least 10% different from the last added one
-        	do {
-	            int index1 = rng.nextInt(popSize);
-	            parent1 = population.get(index1);
-        	} while (parents.size() > 0 &&
-        			diffChromosome(parents.get(parents.size()-1), parent1) < 0.1*chromosomeSize);
-            
-        	// try to find a different parent from at least one element
-        	do {
-	        	int index2 = rng.nextInt(popSize);
-	            parent2 = population.get(index2);
-            } while (parents.size() > 0 && 
-        			diffChromosome(parents.get(parents.size()-1), parent2) == 0);
-            
+            // find a parent that is at least 10% different from the last added one
+            do {
+                int index1 = rng.nextInt(popSize);
+                parent1 = population.get(index1);
+            } while (parents.size() > 0
+                    && diffChromosome(parents.get(parents.size() - 1), parent1) < 0.1 * chromosomeSize);
+
+            // try to find a different parent from at least one element
+            do {
+                int index2 = rng.nextInt(popSize);
+                parent2 = population.get(index2);
+            } while (parents.size() > 0
+                    && diffChromosome(parents.get(parents.size() - 1), parent2) == 0);
+
             if (parent1.getFitnessVal() > parent2.getFitnessVal()) {
                 parents.add(parent1);
             } else {
@@ -131,37 +161,37 @@ public class GA_QBFPT extends GA_QBF {
 
 //            System.out.println("parent1 "+parent1);
 //            System.out.println("parent2 "+parent2);
-            
             // encontrar indice a partir do inicio em que parent1 fica diferente de parent2
             int crossbegin, crossend;
             for (crossbegin = 0; crossbegin < chromosomeSize; crossbegin++) {
-            	if (parent1.get(crossbegin) != parent2.get(crossbegin))
-            		break;
+                if (parent1.get(crossbegin) != parent2.get(crossbegin)) {
+                    break;
+                }
             }
             if (crossbegin == chromosomeSize) // parents are equal
             {
-            	// mutate parents at random and add them
-            	mutateGene(parent1, rng.nextInt(chromosomeSize));
-            	
-            	offsprings.add(parent1);
+                // mutate parents at random and add them
+                mutateGene(parent1, rng.nextInt(chromosomeSize));
+
+                offsprings.add(parent1);
                 offsprings.add(parent2);
-            	//System.out.println("Parents are equall!!");
-            	//System.out.println("parent1 "+parent1);
-            	//System.out.println("parent2 "+parent2);
-            	continue;
+                //System.out.println("Parents are equall!!");
+                //System.out.println("parent1 "+parent1);
+                //System.out.println("parent2 "+parent2);
+                continue;
             }
             // encontrar indice a partir do final em que parents ficam diferentes
-            for (crossend = chromosomeSize-1; crossend > crossbegin; crossend--) {
-            	if (parent1.get(crossend) != parent2.get(crossend))
-            		break;
+            for (crossend = chromosomeSize - 1; crossend > crossbegin; crossend--) {
+                if (parent1.get(crossend) != parent2.get(crossend)) {
+                    break;
+                }
             }
-            
+
             int crosspoint1 = crossbegin + rng.nextInt(crossend + 1 - crossbegin);
             int crosspoint2 = crosspoint1 + rng.nextInt((crossend + 1) - crosspoint1);
-            
+
 //            int crosspoint1 = rng.nextInt(chromosomeSize + 1);
 //            int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
-
             Chromosome<Integer> offspring1 = createEmpytChromossome();
             Chromosome<Integer> offspring2 = createEmpytChromossome();
 
@@ -179,11 +209,20 @@ public class GA_QBFPT extends GA_QBF {
                     cand2 = parent2.get(j);
                 }
 
-                if (!CL1.contains(j)) {
+                if (cand1 == 1 && !CL1.contains(j)) {
                     cand1 = 0;
                 }
-                if (!CL2.contains(j)) {
+                if (cand2 == 1 && !CL2.contains(j)) {
                     cand2 = 0;
+                }
+                
+                if (cand1 == 1) {
+                	this.tripleElements[j].qttUsed++;
+                	this.incrementEsperanca();
+                }
+                if (cand2 == 1) {
+                	this.tripleElements[j].qttUsed++;
+                	this.incrementEsperanca();
                 }
 
                 offspring1.add(cand1);
@@ -241,13 +280,25 @@ public class GA_QBFPT extends GA_QBF {
                     cand2 = parent2.get(j);
                 }
 
-                if (!CL1.contains(j)) {
+                
+                if (cand1 == 1 && !CL1.contains(j)) {
                     cand1 = 0;
                 }
-                if (!CL2.contains(j)) {
+                if (cand2 == 1 && !CL2.contains(j)) {
                     cand2 = 0;
                 }
-
+                
+                
+                if (cand1 == 1) {
+                	this.tripleElements[j].qttUsed++;
+                	this.incrementEsperanca();
+                }
+                if (cand2 == 1) {
+                	this.tripleElements[j].qttUsed++;
+                	this.incrementEsperanca();
+                }
+                               
+                
                 offspring1.add(cand1);
                 offspring2.add(cand2);
 
@@ -269,12 +320,29 @@ public class GA_QBFPT extends GA_QBF {
     @Override
     protected void mutateGene(Chromosome<Integer> chromosome, Integer locus) {
         if (chromosome.get(locus) == 1) {
+        	this.tripleElements[locus].qttUsed--;
+        	this.decrementEsperanca();
             chromosome.set(locus, 0);
         } else if (updateCL(chromosome).contains(locus)) {
+        	this.tripleElements[locus].qttUsed++;
+        	this.incrementEsperanca();
             chromosome.set(locus, 1);
         }
     }
 
+    @Override
+    public Boolean mutationCriteria() {
+//    	calcular desvio padrão aqui
+    	double desvioPadrao = 0d;
+    	for (int i = 0; i < tripleElements.length; i++) {
+    		int qtt = tripleElements[i].getQttUsed();
+    		desvioPadrao += (qtt * qtt) - (2 * qtt * esperanca) + (esperanca * esperanca); 
+		}
+    	desvioPadrao = Math.sqrt(desvioPadrao/tripleElements.length);
+    	
+    	return rng.nextDouble() < mutationRate;
+    }
+    
     /**
      * Linear congruent function l used to generate pseudo-random numbers.
      */
@@ -386,15 +454,15 @@ public class GA_QBFPT extends GA_QBF {
 //                this.tripleElements[e].setSelected(true);
 //                this.tripleElements[e].setAvailable(false);
 //            }
-        	for (int i = 0; i < chromosomeSize; i ++) {
-        		if (solAtual.contains(i)) {
-        			this.tripleElements[i].setSelected(true);
-        			this.tripleElements[i].setAvailable(false);
-        		} else {
-        			this.tripleElements[i].setSelected(false);
-        			this.tripleElements[i].setAvailable(true);
-        		}
-        	}
+            for (int i = 0; i < chromosomeSize; i++) {
+                if (solAtual.contains(i)) {
+                    this.tripleElements[i].setSelected(true);
+                    this.tripleElements[i].setAvailable(false);
+                } else {
+                    this.tripleElements[i].setSelected(false);
+                    this.tripleElements[i].setAvailable(true);
+                }
+            }
         }
 
         for (Triple trip : this.triples) {
@@ -428,7 +496,7 @@ public class GA_QBFPT extends GA_QBF {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf060", AbstractGA.DEFAULT_CROSSOVER);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf060", AbstractGA.DEFAULT_CROSSOVER, AbstractGA.DYNAMIC_MUTATION);
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);
         long endTime = System.currentTimeMillis();
@@ -436,5 +504,38 @@ public class GA_QBFPT extends GA_QBF {
         System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
 
     }
+
+	@Override
+	public Solution<Integer> createEmptySol() {
+		Solution<Integer> sol = new Solution<Integer>();
+        sol.cost = 0.0;
+        return sol;
+	}
+
+	@Override
+	protected Solution<Integer> decode(Chromosome<Integer> chromosome) {
+		Solution<Integer> solution = createEmptySol();
+        
+        
+        for (int locus = 0; locus < chromosome.size(); locus++) {
+            if (chromosome.get(locus) == 1) {
+                solution.add(new Integer(locus));
+            }
+        }
+
+        ObjFunction.evaluate(solution);
+        return solution;
+	}
+
+	@Override
+	protected Chromosome<Integer> createEmpytChromossome() {
+		return new ChromossomeQBF();
+	}
+
+	@Override
+	protected void endGenerationAction() {
+		this.resetTripleElementsQttUsed();
+		
+	}
 
 }

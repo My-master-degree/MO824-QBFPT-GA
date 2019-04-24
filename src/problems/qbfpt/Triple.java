@@ -5,7 +5,7 @@ import java.util.Arrays;
 
 /**
  * An object of this class represents a prohibited triple for MAXQBFPT problem.
- * 
+ *
  * @author Cristina Bazzano
  * @author Jônatas Trabuco Belotti [jonatas.t.belotti@hotmail.com]
  * @author Matheus Diógenes Andrade

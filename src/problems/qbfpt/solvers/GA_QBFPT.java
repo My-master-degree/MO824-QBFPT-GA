@@ -153,8 +153,8 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         while (parents.size() < popSize) {
             do {
-                index1 = rng.nextInt(popSize);
-                index2 = rng.nextInt(popSize);
+                index1 = rng.nextInt(population.size());
+                index2 = rng.nextInt(population.size());
 
                 parent1 = population.get(index1);
                 parent2 = population.get(index2);

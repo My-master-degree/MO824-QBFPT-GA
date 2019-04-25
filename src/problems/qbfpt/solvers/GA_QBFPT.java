@@ -33,22 +33,22 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     private Triple[] triples;
 
     private Double esperanca;
-    
+
     private ArrayList<Integer> listIndices = new ArrayList<Integer>();
 
     public final static int XOR_CROSSOVER = 3;
     public final static int XOR_UNIFORM_CROSSOVER = 4;
-    
-    public boolean NO_DUPLICATES_POLICY; // -1 or zero or more: number of allowed duplicates in any population; -1 disable
-    
-    public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType, int mutationType, boolean no_duplicates) throws IOException {
-//        super(tempoExecucao, geracoesConvengencia, popSize, mutationRate, filename, crossoverType);
-        super(new QBF(filename), tempoExecucao, geracoesConvengencia, popSize, mutationRate, crossoverType, mutationType);
-        System.out.println("file "+filename+" tempoExec "+tempoExecucao+" geracoesConvergencia "+
-        					geracoesConvengencia+" \n popSize "+popSize+" mutationRate "+mutationRate+" crossoverType "+
-        		crossoverType+" mutationType "+mutationType+" n_duplicates "+no_duplicates);
 
-        for (int i = 0; i < popSize; i++) {
+    public boolean NO_DUPLICATES_POLICY; // -1 or zero or more: number of allowed duplicates in any population; -1 disable
+
+    public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType, int mutationType, boolean no_duplicates) throws IOException {
+        super(new QBF(filename), tempoExecucao, geracoesConvengencia, popSize, mutationRate, crossoverType, mutationType);
+
+        System.out.println("file " + filename + " tempoExec " + tempoExecucao + " geracoesConvergencia "
+                + geracoesConvengencia + " \n popSize " + this.popSize + " mutationRate " + mutationRate + " crossoverType "
+                + crossoverType + " mutationType " + mutationType + " n_duplicates " + no_duplicates);
+
+        for (int i = 0; i < this.popSize; i++) {
             listIndices.add(i);
         }
         esperanca = 0d;
@@ -75,19 +75,18 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     @Override
     protected Population crossover(Population parents) {
 
-        if (this.CROSSOVER_TYPE == UNIFORM_CROSSOVER) {
-            return uniformCrossover(parents);
-        } else if (CROSSOVER_TYPE == XOR_UNIFORM_CROSSOVER) {
+        if (CROSSOVER_TYPE == XOR_UNIFORM_CROSSOVER) {
             return uniformXorCrossover(parents);
         } else if (CROSSOVER_TYPE == XOR_CROSSOVER) {
-        	return xorCrossover(parents);
+            return xorCrossover(parents);
         }
 
         return defaultCrossover(parents);
     }
+
     /**
-     * Randomly generates an initial population to start the GA. Accepting at most
-     * N_duplicates
+     * Randomly generates an initial population to start the GA. Accepting at
+     * most N_duplicates
      *
      * @return A population of chromosomes.
      */
@@ -97,18 +96,16 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         while (population.size() < popSize) {
             Chromosome<Integer> c = generateRandomChromosome();
-            
-            if (!NO_DUPLICATES_POLICY || populationCheckClonesOk(population,c))
-            {
-            	c.calcFitness(ObjFunction);
-            	population.add(c);
-            }            
+
+            if (!NO_DUPLICATES_POLICY || populationCheckClonesOk(population, c)) {
+                c.calcFitness(ObjFunction);
+                population.add(c);
+            }
         }
 
         return population;
 
     }
-    
 
     @Override
     protected Chromosome<Integer> generateRandomChromosome() {
@@ -151,27 +148,22 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     protected Population selectParents(Population population) {
 
         Population parents = new Population();
+        int index1, index2;
         Chromosome<Integer> parent1, parent2;
-        
-        if (NO_DUPLICATES_POLICY) {
-        	Collections.shuffle(listIndices);
-            
-            for (int i : listIndices) {
-            	parents.add(population.get(i));
-            }
-        } else {
-        	while (parents.size() < popSize) {
-                int index1 = rng.nextInt(popSize);
+
+        while (parents.size() < popSize) {
+            do {
+                index1 = rng.nextInt(popSize);
+                index2 = rng.nextInt(popSize);
+
                 parent1 = population.get(index1);
-
-                int index2 = rng.nextInt(popSize);
                 parent2 = population.get(index2);
+            } while (NO_DUPLICATES_POLICY && ((index1 == index2) || (parents.isEmpty() == false && (parents.get(parents.size() - 1).equals(parent1) || parents.get(parents.size() - 1).equals(parent2)))));
 
-                if (parent1.getFitnessVal() > parent2.getFitnessVal()) {
-                    parents.add(parent1);
-                } else {
-                    parents.add(parent2);
-                }
+            if (parent1.getFitnessVal() > parent2.getFitnessVal()) {
+                parents.add(parent1);
+            } else {
+                parents.add(parent2);
             }
         }
 
@@ -192,30 +184,31 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     protected Population selectPopulation(Population offsprings) {
 
         Chromosome<Integer> worse = getWorseChromosome(offsprings);
-        if (worse.getFitnessVal() < bestChromosome.getFitnessVal() &&
-        	(!NO_DUPLICATES_POLICY || populationCheckClonesOk(offsprings, bestChromosome))) {
+        if (worse.getFitnessVal() < bestChromosome.getFitnessVal()
+                && (!NO_DUPLICATES_POLICY || populationCheckClonesOk(offsprings, bestChromosome))) {
             offsprings.remove(worse);
             offsprings.add(bestChromosome);
         }
 
         return offsprings;
     }
-    
+
     // check if the population has any duplicate to a given chromosome
     // false if yes
     // true if no and population is ok to accept that chromosome
     protected boolean populationCheckClonesOk(Population offsprings, Chromosome<Integer> chrom) {
-    	if (!NO_DUPLICATES_POLICY)
-    		return true;
-    	
-    	for (Chromosome<Integer> individuo : offsprings) {
-    		if (diffChromosome(individuo, chrom) == 0) {
-    			return false; // return when the N_DUPLICATES_POLICY clone is found
-    		}
-    		
-    	}
-    	
-    	return true;
+        if (!NO_DUPLICATES_POLICY) {
+            return true;
+        }
+
+        for (Chromosome<Integer> individuo : offsprings) {
+            if (diffChromosome(individuo, chrom) == 0) {
+                return false; // return when the N_DUPLICATES_POLICY clone is found
+            }
+
+        }
+
+        return true;
 
     }
 
@@ -239,7 +232,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         return pos;
     }
-    
+
     /**
      * The mutation step takes the offsprings generated by {@link #crossover}
      * and to each possible locus, perform a mutation with the expected
@@ -255,24 +248,22 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
         for (Chromosome<Integer> c : offsprings) {
             boolean teveMutacao = false;
             Chromosome<Integer> cc = (Chromosome<Integer>) c.clone();
-            
+
             for (int locus = 0; locus < chromosomeSize; locus++) {
                 if (this.MUTATION_TYPE == AbstractGA.DEFAULT_MUTATION) {
                     if (rng.nextDouble() < mutationRate) {
-                    	mutateGene(cc, locus);
-                        if (!NO_DUPLICATES_POLICY || populationCheckClonesOk(offsprings, cc))
-                        {
-                        	c = cc;
-                        	teveMutacao = true;
+                        mutateGene(cc, locus);
+                        if (!NO_DUPLICATES_POLICY || populationCheckClonesOk(offsprings, cc)) {
+                            c = cc;
+                            teveMutacao = true;
                         }
                     }
                 } else if (this.MUTATION_TYPE == AbstractGA.DYNAMIC_MUTATION) {
                     if (this.mutationCriteria()) {
-                    	mutateGene(cc, locus);
-                        if (!NO_DUPLICATES_POLICY || populationCheckClonesOk(offsprings, cc))
-                        {
-                        	c = cc;
-                        	teveMutacao = true;
+                        mutateGene(cc, locus);
+                        if (!NO_DUPLICATES_POLICY || populationCheckClonesOk(offsprings, cc)) {
+                            c = cc;
+                            teveMutacao = true;
                         }
                     }
                 }
@@ -306,21 +297,21 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
             {
                 Chromosome<Integer> offspring1 = (Chromosome<Integer>) parent1.clone();
                 Chromosome<Integer> offspring2 = (Chromosome<Integer>) parent2.clone();
-                
-                // mutate at least one parent at random and add them
 
+                // mutate at least one parent at random and add them
                 while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
-                	mutateGeneCL(updateCL(offspring1), offspring1, rng.nextInt(chromosomeSize));
-            	}
-                while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
-                		diffChromosome(offspring1, offspring2) == 0)) {
-                	mutateGeneCL(updateCL(offspring2), offspring2, rng.nextInt(chromosomeSize));
-            	}
-                
+                    mutateGeneCL(updateCL(offspring1), offspring1, rng.nextInt(chromosomeSize));
+                }
+                while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2)
+                        || diffChromosome(offspring1, offspring2) == 0)) {
+                    mutateGeneCL(updateCL(offspring2), offspring2, rng.nextInt(chromosomeSize));
+                }
+
                 // if duplicates are allowed just modify one parent at random
-                if (!NO_DUPLICATES_POLICY)
-                	mutateGeneCL(updateCL(offspring1), offspring1, rng.nextInt(chromosomeSize));
-                
+                if (!NO_DUPLICATES_POLICY) {
+                    mutateGeneCL(updateCL(offspring1), offspring1, rng.nextInt(chromosomeSize));
+                }
+
                 offspring1.calcFitness(ObjFunction);
                 offspring2.calcFitness(ObjFunction);
 
@@ -387,17 +378,17 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
             offspring2.calcFitness(ObjFunction);
 
             while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
-            	// existe um individuo igual a offspring1, mutate offspring1 until it is valid and add
-            	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
-            	CL1 = updateCL(offspring1);
+                // existe um individuo igual a offspring1, mutate offspring1 until it is valid and add
+                mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                CL1 = updateCL(offspring1);
             }
-            while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
-            		diffChromosome(offspring1, offspring2) == 0)) {
-            	// existe um individuo igual a offspring2, mutate offspring2 until it is valid and add
-            	mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
-            	CL2 = updateCL(offspring2);
-            }     
-            
+            while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2)
+                    || diffChromosome(offspring1, offspring2) == 0)) {
+                // existe um individuo igual a offspring2, mutate offspring2 until it is valid and add
+                mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
+                CL2 = updateCL(offspring2);
+            }
+
             offspring1.calcFitness(ObjFunction);
             offspring2.calcFitness(ObjFunction);
 
@@ -428,19 +419,20 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
                 // mutate at least one parent at random and add them
 
                 while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
-                	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
-                	 CL1 = updateCL(offspring1);
-            	}
-                while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
-                		diffChromosome(offspring1, offspring2) == 0)) {
-                	mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
-                	CL2 = updateCL(offspring2);
-            	}
-                
+                    mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                    CL1 = updateCL(offspring1);
+                }
+                while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2)
+                        || diffChromosome(offspring1, offspring2) == 0)) {
+                    mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
+                    CL2 = updateCL(offspring2);
+                }
+
                 // if duplicates are allowed just modify one parent at random
-                if (!NO_DUPLICATES_POLICY)
-                	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
-                
+                if (!NO_DUPLICATES_POLICY) {
+                    mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                }
+
                 offspring1.calcFitness(ObjFunction);
                 offspring2.calcFitness(ObjFunction);
 
@@ -457,24 +449,24 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
                 int k = crossPos.get(j);
 
                 if (rng.nextDouble() < 0.5D) {
-                mutateGeneCL(CL1, offspring1, k);
-                mutateGeneCL(CL2, offspring2, k);
+                    mutateGeneCL(CL1, offspring1, k);
+                    mutateGeneCL(CL2, offspring2, k);
 
-                CL1 = updateCL(offspring1);
-                CL2 = updateCL(offspring2);
-                }              
+                    CL1 = updateCL(offspring1);
+                    CL2 = updateCL(offspring2);
+                }
             }
 
             while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
-            	// existe um individuo igual a offspring1, mutate offspring and check again
-            	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
-            	CL1 = updateCL(offspring1);
+                // existe um individuo igual a offspring1, mutate offspring and check again
+                mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                CL1 = updateCL(offspring1);
             }
-            while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
-            		diffChromosome(offspring1, offspring2) == 0)) {
-            	// existe um individuo igual a offspring2, mutate offspring2 and check again
-            	mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
-            	CL2 = updateCL(offspring2);
+            while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2)
+                    || diffChromosome(offspring1, offspring2) == 0)) {
+                // existe um individuo igual a offspring2, mutate offspring2 and check again
+                mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
+                CL2 = updateCL(offspring2);
             }
             offspring1.calcFitness(ObjFunction);
             offspring2.calcFitness(ObjFunction);
@@ -485,7 +477,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         return offsprings;
     }
-    
+
     @Override
     protected Population defaultCrossover(Population parents) {
         Population offsprings = new Population();
@@ -542,16 +534,16 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
             offspring2.calcFitness(ObjFunction);
 
             while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
-            	// existe um individuo igual a offspring1, mutate offspring1 until it is valid and add
-            	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
-            	CL1 = updateCL(offspring1);
+                // existe um individuo igual a offspring1, mutate offspring1 until it is valid and add
+                mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                CL1 = updateCL(offspring1);
             }
-            while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
-            		diffChromosome(offspring1, offspring2) == 0)) {
-            	// existe um individuo igual a offspring2, mutate offspring2 until it is valid and add
-            	mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
-            	CL2 = updateCL(offspring2);
-            }  
+            while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2)
+                    || diffChromosome(offspring1, offspring2) == 0)) {
+                // existe um individuo igual a offspring2, mutate offspring2 until it is valid and add
+                mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
+                CL2 = updateCL(offspring2);
+            }
 
             offspring1.calcFitness(ObjFunction);
             offspring2.calcFitness(ObjFunction);
@@ -791,8 +783,6 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         return _CL;
     }
-
-    
 
     @Override
     public Solution<Integer> createEmptySol() {

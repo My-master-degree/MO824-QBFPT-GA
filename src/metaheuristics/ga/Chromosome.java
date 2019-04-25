@@ -22,7 +22,7 @@ public abstract class Chromosome<G> extends ArrayList<G> {
     public Chromosome() {
     }
 
-    public double getFitnessVal() {
+    public Double getFitnessVal() {
         return fitnessVal;
     }
 

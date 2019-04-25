@@ -17,7 +17,7 @@ import solutions.Solution;
 public abstract class AbstractGA<G extends Number, F> {
 
     public final static int DEFAULT_CROSSOVER = 1;
-    public final static int UNIFORM_CROSSOVER = 2;
+
     public final static int DYNAMIC_MUTATION = 1;
     public final static int DEFAULT_MUTATION = 2;
     public int CROSSOVER_TYPE;
@@ -25,8 +25,8 @@ public abstract class AbstractGA<G extends Number, F> {
 
     @SuppressWarnings("serial")
     public class Population extends ArrayList<Chromosome<F>> {
-    }
-
+            }
+            
     /**
      * flag that indicates whether the code should print more information on
      * screen
@@ -57,7 +57,7 @@ public abstract class AbstractGA<G extends Number, F> {
     /**
      * the size of the population
      */
-    protected int popSize;
+    protected Integer popSize;
 
     /**
      * the size of the chromosome
@@ -292,11 +292,6 @@ public abstract class AbstractGA<G extends Number, F> {
     }
 
     protected Population crossover(Population parents) {
-
-        if (this.CROSSOVER_TYPE == UNIFORM_CROSSOVER) {
-            return uniformCrossover(parents);
-        }
-
         return defaultCrossover(parents);
     }
 
@@ -345,36 +340,6 @@ public abstract class AbstractGA<G extends Number, F> {
             offsprings.add(offspring1);
             offsprings.add(offspring2);
 
-        }
-
-        return offsprings;
-    }
-
-    protected Population uniformCrossover(Population parents) {
-        Population offsprings = new Population();
-
-        for (int i = 0; i < popSize; i = i + 2) {
-            Chromosome<F> parent1 = parents.get(i);
-            Chromosome<F> parent2 = parents.get(i + 1);
-
-            Chromosome<F> offspring1 = createEmpytChromossome();
-            Chromosome<F> offspring2 = createEmpytChromossome();
-
-            for (int j = 0; j < chromosomeSize; j++) {
-                if (rng.nextDouble() < 0.5D) {
-                    offspring1.add(parent2.get(j));
-                    offspring2.add(parent1.get(j));
-                } else {
-                    offspring1.add(parent1.get(j));
-                    offspring2.add(parent2.get(j));
-                }
-            }
-
-            offspring1.calcFitness(ObjFunction);
-            offspring2.calcFitness(ObjFunction);
-
-            offsprings.add(offspring1);
-            offsprings.add(offspring2);
         }
 
         return offsprings;
@@ -433,7 +398,7 @@ public abstract class AbstractGA<G extends Number, F> {
             offsprings.remove(worse);
             offsprings.add(bestChromosome);
         }
-
+        
         return offsprings;
     }
 

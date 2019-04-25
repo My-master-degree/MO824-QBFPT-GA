@@ -100,22 +100,6 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
         return new ChromossomeQBF();
     }
 
-    /**
-     * A main method used for testing the GA metaheuristic.
-     *
-     */
-    public static void main(String[] args) throws IOException {
-
-        long startTime = System.currentTimeMillis();
-        GA_QBF ga = new GA_QBF(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.UNIFORM_CROSSOVER, AbstractGA.DEFAULT_MUTATION);
-        Solution<Integer> bestSol = ga.solve();
-        System.out.println("maxVal = " + bestSol);
-        long endTime = System.currentTimeMillis();
-        long totalTime = endTime - startTime;
-        System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
-
-    }
-
     @Override
     protected void endGenerationAction() {
         // TODO Auto-generated method stub
@@ -126,6 +110,22 @@ public class GA_QBF extends AbstractGA<Integer, Integer> {
     public Boolean mutationCriteria() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    /**
+     * A main method used for testing the GA metaheuristic.
+     *
+     */
+    public static void main(String[] args) throws IOException {
+
+        long startTime = System.currentTimeMillis();
+        GA_QBF ga = new GA_QBF(30, 1000, 100, 1.0 / 100.0, "instances/qbf020", AbstractGA.DEFAULT_CROSSOVER, AbstractGA.DEFAULT_MUTATION);
+        Solution<Integer> bestSol = ga.solve();
+        System.out.println("maxVal = " + bestSol);
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println("Time = " + (double) totalTime / (double) 1000 + " seg");
+
     }
 
 }

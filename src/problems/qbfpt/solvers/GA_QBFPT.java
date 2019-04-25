@@ -33,8 +33,12 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     private Triple[] triples;
 
     private Double esperanca;
+    
+    private ArrayList<Integer> listIndices = new ArrayList<Integer>();
 
     public final static int XOR_CROSSOVER = 3;
+    public final static int XOR_UNIFORM_CROSSOVER = 4;
+    
     public boolean NO_DUPLICATES_POLICY; // -1 or zero or more: number of allowed duplicates in any population; -1 disable
     
     public GA_QBFPT(Integer tempoExecucao, Integer geracoesConvengencia, Integer popSize, Double mutationRate, String filename, int crossoverType, int mutationType, boolean no_duplicates) throws IOException {
@@ -44,6 +48,9 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
         					geracoesConvengencia+" \n popSize "+popSize+" mutationRate "+mutationRate+" crossoverType "+
         		crossoverType+" mutationType "+mutationType+" n_duplicates "+no_duplicates);
 
+        for (int i = 0; i < popSize; i++) {
+            listIndices.add(i);
+        }
         esperanca = 0d;
         generateTripleElements();
         generateTriples();
@@ -70,8 +77,10 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
         if (this.CROSSOVER_TYPE == UNIFORM_CROSSOVER) {
             return uniformCrossover(parents);
-        } else if (CROSSOVER_TYPE == XOR_CROSSOVER) {
+        } else if (CROSSOVER_TYPE == XOR_UNIFORM_CROSSOVER) {
             return uniformXorCrossover(parents);
+        } else if (CROSSOVER_TYPE == XOR_CROSSOVER) {
+        	return xorCrossover(parents);
         }
 
         return defaultCrossover(parents);
@@ -104,11 +113,9 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     @Override
     protected Chromosome<Integer> generateRandomChromosome() {
         Chromosome<Integer> chromosome = createEmpytChromossome();
-        ArrayList<Integer> listIndices = new ArrayList<Integer>();
 
         for (int i = 0; i < chromosomeSize; i++) {
             chromosome.add(0);
-            listIndices.add(i);
         }
 
         Collections.shuffle(listIndices);
@@ -147,12 +154,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
         Chromosome<Integer> parent1, parent2;
         
         if (NO_DUPLICATES_POLICY) {
-        	ArrayList<Integer> listIndices = new ArrayList<Integer>();
-        	for (int i = 0; i < popSize; i++) {
-                listIndices.add(i);
-            }
-
-            Collections.shuffle(listIndices);
+        	Collections.shuffle(listIndices);
             
             for (int i : listIndices) {
             	parents.add(population.get(i));
@@ -285,8 +287,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
         return offsprings;
     }
 
-    @Override
-    protected Population defaultCrossover(Population parents) {
+    protected Population xorCrossover(Population parents) {
         Population offsprings = new Population();
 
         for (int i = 0; i < popSize; i = i + 2) {
@@ -424,14 +425,30 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
             if (crossPos.size() == 0) // parents are equal
             {
-                // mutate parents at random and add them
-                mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                // mutate at least one parent at random and add them
+
+                while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
+                	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                	 CL1 = updateCL(offspring1);
+            	}
+                while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
+                		diffChromosome(offspring1, offspring2) == 0)) {
+                	mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
+                	CL2 = updateCL(offspring2);
+            	}
+                
+                // if duplicates are allowed just modify one parent at random
+                if (!NO_DUPLICATES_POLICY)
+                	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+                
+                offspring1.calcFitness(ObjFunction);
+                offspring2.calcFitness(ObjFunction);
 
                 offsprings.add(offspring1);
                 offsprings.add(offspring2);
-                //System.out.println("Parents are equall!!");
-                //System.out.println("parent1 "+parent1);
-                //System.out.println("parent2 "+parent2);
+//                System.out.println("Parents were equall!!");
+//                System.out.println("parent1 "+offspring1);
+//                System.out.println("parent2 "+offspring2);
                 continue;
             }
 
@@ -439,23 +456,23 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
                 int cand1, cand2;
                 int k = crossPos.get(j);
 
-                //if (rng.nextDouble() < 0.5D) {
+                if (rng.nextDouble() < 0.5D) {
                 mutateGeneCL(CL1, offspring1, k);
                 mutateGeneCL(CL2, offspring2, k);
 
                 CL1 = updateCL(offspring1);
                 CL2 = updateCL(offspring2);
-//                }              
+                }              
             }
 
             while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
-            	// existe um individuo igual a offspring1, mutate offspring and add
+            	// existe um individuo igual a offspring1, mutate offspring and check again
             	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
             	CL1 = updateCL(offspring1);
             }
             while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
             		diffChromosome(offspring1, offspring2) == 0)) {
-            	// existe um individuo igual a offspring2, mutate offspring and add
+            	// existe um individuo igual a offspring2, mutate offspring2 and check again
             	mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
             	CL2 = updateCL(offspring2);
             }
@@ -464,6 +481,84 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
 
             offsprings.add(offspring2);
             offsprings.add(offspring1);
+        }
+
+        return offsprings;
+    }
+    
+    @Override
+    protected Population defaultCrossover(Population parents) {
+        Population offsprings = new Population();
+
+        for (int i = 0; i < popSize; i = i + 2) {
+
+            Chromosome<Integer> parent1 = parents.get(i);
+            Chromosome<Integer> parent2 = parents.get(i + 1);
+
+            int crosspoint1 = rng.nextInt(chromosomeSize + 1);
+            int crosspoint2 = crosspoint1 + rng.nextInt((chromosomeSize + 1) - crosspoint1);
+
+            Chromosome<Integer> offspring1 = createEmpytChromossome();
+            Chromosome<Integer> offspring2 = createEmpytChromossome();
+
+            ArrayList<Integer> CL1 = makeCL();
+            ArrayList<Integer> CL2 = makeCL();
+
+            for (int j = 0; j < chromosomeSize; j++) {
+                int cand1, cand2;
+
+                if (j >= crosspoint1 && j < crosspoint2) {
+                    cand1 = parent2.get(j);
+                    cand2 = parent1.get(j);
+                } else {
+                    cand1 = parent1.get(j);
+                    cand2 = parent2.get(j);
+                }
+
+                if (cand1 == 1 && !CL1.contains(j)) {
+                    cand1 = 0;
+                }
+                if (cand2 == 1 && !CL2.contains(j)) {
+                    cand2 = 0;
+                }
+
+                if (cand1 == 1) {
+                    this.tripleElements[j].qttUsed++;
+                    this.incrementEsperanca();
+                }
+                if (cand2 == 1) {
+                    this.tripleElements[j].qttUsed++;
+                    this.incrementEsperanca();
+                }
+
+                offspring1.add(cand1);
+                offspring2.add(cand2);
+
+                CL1 = updateCL(offspring1);
+                CL2 = updateCL(offspring2);
+            }
+
+            offspring1.calcFitness(ObjFunction);
+            offspring2.calcFitness(ObjFunction);
+
+            while (NO_DUPLICATES_POLICY && !populationCheckClonesOk(offsprings, offspring1)) {
+            	// existe um individuo igual a offspring1, mutate offspring1 until it is valid and add
+            	mutateGeneCL(CL1, offspring1, rng.nextInt(chromosomeSize));
+            	CL1 = updateCL(offspring1);
+            }
+            while (NO_DUPLICATES_POLICY && (!populationCheckClonesOk(offsprings, offspring2) ||
+            		diffChromosome(offspring1, offspring2) == 0)) {
+            	// existe um individuo igual a offspring2, mutate offspring2 until it is valid and add
+            	mutateGeneCL(CL2, offspring2, rng.nextInt(chromosomeSize));
+            	CL2 = updateCL(offspring2);
+            }  
+
+            offspring1.calcFitness(ObjFunction);
+            offspring2.calcFitness(ObjFunction);
+
+            offsprings.add(offspring1);
+            offsprings.add(offspring2);
+
         }
 
         return offsprings;
@@ -808,7 +903,7 @@ public class GA_QBFPT extends AbstractGA<Integer, Integer> {
     public static void main(String[] args) throws IOException {
 
         long startTime = System.currentTimeMillis();
-        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf040", AbstractGA.DEFAULT_CROSSOVER, AbstractGA.DYNAMIC_MUTATION, false);
+        GA_QBFPT ga = new GA_QBFPT(30, 1000, 100, 1.0 / 100.0, "instances/qbf060", XOR_UNIFORM_CROSSOVER, AbstractGA.DYNAMIC_MUTATION, false);
 
         Solution<Integer> bestSol = ga.solve();
         System.out.println("maxVal = " + bestSol);

@@ -1,0 +1,8 @@
+fileName,tamanhoPop,taxaMut,tipoCrossover,tipoMutacao,manutencaoDiversidade, solucao
+instances/qbf020,1,0.01,1,2,false,107.0
+instances/qbf040,1,0.01,1,2,false,280.0
+instances/qbf060,1,0.01,1,2,false,374.0
+instances/qbf080,1,0.01,1,2,false,546.0
+instances/qbf100,1,0.01,1,2,false,989.0
+instances/qbf200,1,0.01,1,2,false,2415.0
+instances/qbf400,1,0.01,1,2,false,2718.0

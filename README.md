@@ -8,5 +8,6 @@ The project file structure works as follows:
 * execucoes: The experiments output.
 * src: Source code.
 
+The detailed documentation can be found [here](https://codedocs.xyz/My-master-degree/MO824-QBFPT-GA/).
 Any doubts feel yourself free to reach me out: m228117@dac.unicamp.br
 
